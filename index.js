@@ -1,3 +1,4 @@
+const debug = require('debug')('app:startup');
 const config = require('config')
 const Joi = require('joi');
 const logger = require('./logger')
@@ -5,6 +6,9 @@ const express = require('express');
 const app = express();
 const helmet = require('helmet')
 const morgan = require('morgan')
+
+app.set('view engine', 'pug');
+app.set('views', './views') //default
 
 
 app.use(express.json()); // req.body
@@ -19,9 +23,8 @@ console.log('Mail Server: ' + config.get('mail.host'))
 
 if(app.get('env') === 'development'){
     app.use(morgan('tiny'))
-    console.log('Morgan enabled...')
+    debug('Morgan enabled...')
 }
-
 
 app.use(logger);
 
@@ -31,7 +34,10 @@ var courses = [
     { id: 3, name: 'course3'},
 ];
 app.get('/', (req, res) => {
-    res.send('Hello world!!!');
+    res.render('index', {
+        title: 'Rinsvind app',
+        message: 'Hellow world!'
+    })
 })
 
 app.get('/api/courses', (req,res) => {
