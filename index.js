@@ -1,37 +1,33 @@
-const debug = require('debug')('app:startup');
 const config = require('config')
-const logger = require('./middleware/logger')
-const helmet = require('helmet')
-const morgan = require('morgan')
-const courses = require('./routes/courses')
-const home = require('./routes/home')
+const Joi = require('joi')
+Joi.objectId = require('joi-objectid')(Joi)
+const mongoose = require('mongoose');
+const genres = require('./routes/genres')
+const customers = require('./routes/customers')
+const movies = require('./routes/movies')
+const rentals = require('./routes/rentals')
+const users = require('./routes/users')
+const auth = require('./routes/auth')
 const express = require('express');
 const app = express();
 
-app.set('view engine', 'pug');
-app.set('views', './views') //default
-
-
-app.use(express.json()); // req.body
-app.use(express.urlencoded({ extended: true }));//for form/urlencoded key=value&key=value
-app.use(express.static('public'));
-app.use(helmet())
-app.use('/api/courses', courses)
-app.use('/', home)
-
-// Configuration
-console.log('Application Name: ' + config.get('name'))
-console.log('Mail Server: ' + config.get('mail.host'))
-
-if(app.get('env') === 'development'){
-    app.use(morgan('tiny'))
-    debug('Morgan enabled...')
+if (!config.get('jwtPrivateKey')){
+  console.error('jwtPrivateKey is not defined')
+  process.exit(1)
 }
 
-app.use(logger);
+mongoose.connect('mongodb://localhost/vidly')
+  .then(()=>console.log('Connected to MongoDb...'))
+  .catch(e => console.error('Could not connect to MongoDB...'))
 
 
+app.use(express.json());
+app.use('/api/genres', genres)
+app.use('/api/customers', customers)
+app.use('/api/movies', movies)
+app.use('/api/rentals', rentals)
+app.use('/api/users', users)
+app.use('/api/auth', auth)
 
-// PORT
-const port = process.env.PORT || 3000
-app.listen(port, ()=> console.log(`Listening on port ${port}...`))
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Listening on port ${port}...`));
